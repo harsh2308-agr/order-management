@@ -1,0 +1,102 @@
+version: '3.8'
+
+services:
+  auth-service:
+    build: ./auth-service
+    ports:
+      - '5000:5000'
+    environment:
+      - PORT=5000
+      - MONGO_URI=mongodb://mongo:27017/authdb
+      - JWT_SECRET=your_jwt_secret
+      - JWT_REFRESH_SECRET=your_jwt_refresh_secret
+      - RABBITMQ_URI=amqp://rabbitmq
+      # Add other env variables
+    depends_on:
+      - mongo
+      - rabbitmq
+
+  order-service:
+    build: ./order-service
+    ports:
+      - '3000:3000'
+    environment:
+      - PORT=3000
+      - MONGO_URI=mongodb://mongo:27017/order
+      - RABBITMQ_URI=amqp://rabbitmq
+    depends_on:
+      - mongo
+      - rabbitmq
+
+  product-service:
+    build: ./order-service
+    ports:
+      - '8000:8000'
+    environment:
+      - PORT=8000
+      - MONGO_URI=mongodb://mongo:27017/product_catlog
+      - RABBITMQ_URI=amqp://rabbitmq
+    depends_on:
+      - mongo
+      - rabbitmq
+
+  inventory-service:
+    build: ./inventory-service
+    ports:
+      - '8080:8080'
+    environment:
+      - PORT=8080
+      - MONGO_URI=mongodb://mongo:27017/inventory
+      - RABBITMQ_URI=amqp://rabbitmq
+    depends_on:
+      - mongo
+      - rabbitmq
+
+  analytics-service:
+    build: ./analytics-service
+    ports:
+      - '5006:5005'
+    environment:
+      - PORT=5005
+      - MONGO_URI=mongodb://mongo:27017/analytic-service
+      - RABBITMQ_URI=amqp://rabbitmq
+    depends_on:
+      - mongo
+      - rabbitmq
+
+  notification-service:
+    build: ./notification-service
+    ports:
+      - '5005:5000'
+    environment:
+      - PORT=5000
+      - MONGO_URI=mongodb://mongo:27017/notificationdb
+      - RABBITMQ_URI=amqp://rabbitmq
+      - SMTP_HOST=smtp.example.com
+      - SMTP_USER=your_email@example.com
+      - SMTP_PASS=your_password
+    depends_on:
+      - mongo
+      - rabbitmq
+
+  mongo:
+    image: mongo:6.0
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongo-data:/data/db
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - '5672:5672'
+      - '15672:15672' # Management UI
+  redis:
+    image: redis:7
+    container_name: order-management-redis
+    ports:
+      - "6379:6379"
+    restart: always    
+
+volumes:
+  mongo-data:
